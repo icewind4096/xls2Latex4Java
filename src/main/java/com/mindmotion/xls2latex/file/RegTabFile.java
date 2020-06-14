@@ -20,8 +20,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ExcelFile {
-    public static Integer ProduceRegTab(ParamaterInfo paramaterInfo){
+public class RegTabFile {
+    public static Integer GeneralFile(ParamaterInfo paramaterInfo){
         List<List<CellInfo>> rowDatas = new ArrayList<List<CellInfo>>();
         List<String> latexDatas = new ArrayList<String>();
         Workbook workbook = null;

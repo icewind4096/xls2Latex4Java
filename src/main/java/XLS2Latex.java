@@ -4,7 +4,7 @@ import com.mindmotion.xls2latex.enums.ResultEnum;
 import com.mindmotion.xls2latex.file.RegTabFile;
 import com.mindmotion.xls2latex.util.FileUtil;
 
-public class xls2Latex {
+public class XLS2Latex {
     public static void main(String[] args) {
         ParamaterInfo paramaterInfo = Arg2Paramater.arg2Paramater(args);
 

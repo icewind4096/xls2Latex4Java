@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RegTabFile {
-    public static Integer GeneralFile(ParamaterInfo paramaterInfo){
+    public static Integer GenerateFile(ParamaterInfo paramaterInfo){
         List<List<CellInfo>> rowDatas = new ArrayList<List<CellInfo>>();
         List<String> latexDatas = new ArrayList<String>();
         Workbook workbook = null;

@@ -1,8 +1,8 @@
-package com.mindmotion.xls2Latex.util;
+package com.mindmotion.xls2latex.util;
 
-import java.io.BufferedWriter;
+import org.apache.commons.io.FileUtils;
+
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 
@@ -24,13 +24,7 @@ public class FileUtil {
 
     public static boolean saveToFileByList(String fileName, List<String> lists) {
         try {
-            BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(fileName));
-            for (String text: lists){
-                bufferedWriter.write(text);
-                bufferedWriter.newLine();
-            }
-            bufferedWriter.flush();
-            bufferedWriter.close();
+            FileUtils.writeLines(new File(fileName), lists);
             return true;
         } catch (IOException e) {
             e.printStackTrace();

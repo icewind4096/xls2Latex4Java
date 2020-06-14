@@ -1,10 +1,10 @@
-package com.mindmotion.xls2Latex.domain;
+package com.mindmotion.xls2latex.domain;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ParamaterInfo {
-    String destFileName;
+    String destDirectory;
     String sourceFileName;
     String tableName;
     Integer type;
@@ -26,12 +26,12 @@ public class ParamaterInfo {
         this.colWidths = colWidths;
     }
 
-    public String getDestFileName() {
-        return destFileName;
+    public String getDestDirectory() {
+        return destDirectory;
     }
 
-    public void setDestFileName(String destFileName) {
-        this.destFileName = destFileName;
+    public void setDestDirectory(String destDirectory) {
+        this.destDirectory = destDirectory;
     }
 
     public String getSourceFileName() {

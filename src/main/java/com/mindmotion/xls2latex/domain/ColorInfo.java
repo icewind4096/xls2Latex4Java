@@ -1,4 +1,4 @@
-package com.mindmotion.xls2Latex.domain;
+package com.mindmotion.xls2latex.domain;
 
 public class ColorInfo {
     private int r;

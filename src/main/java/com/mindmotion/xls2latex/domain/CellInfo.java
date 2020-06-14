@@ -1,6 +1,6 @@
-package com.mindmotion.xls2Latex.domain;
+package com.mindmotion.xls2latex.domain;
 
-import com.mindmotion.xls2Latex.common.Rect;
+import com.mindmotion.xls2latex.common.Rect;
 import org.apache.poi.ss.usermodel.HorizontalAlignment;
 import org.apache.poi.ss.usermodel.VerticalAlignment;
 

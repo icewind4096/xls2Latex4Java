@@ -1,4 +1,4 @@
-package com.mindmotion.xls2Latex.util;
+package com.mindmotion.xls2latex.util;
 
 import org.apache.commons.lang3.StringUtils;
 

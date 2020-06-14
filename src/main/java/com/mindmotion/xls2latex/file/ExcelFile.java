@@ -1,11 +1,12 @@
-package com.mindmotion.xls2Latex.file;
+package com.mindmotion.xls2latex.file;
 
-import com.mindmotion.xls2Latex.common.Rect;
-import com.mindmotion.xls2Latex.domain.CellInfo;
-import com.mindmotion.xls2Latex.domain.ColorInfo;
-import com.mindmotion.xls2Latex.domain.ParamaterInfo;
-import com.mindmotion.xls2Latex.util.FileUtil;
-import com.mindmotion.xls2Latex.util.LatexUtil;
+import com.mindmotion.xls2latex.common.Rect;
+import com.mindmotion.xls2latex.domain.CellInfo;
+import com.mindmotion.xls2latex.domain.ColorInfo;
+import com.mindmotion.xls2latex.domain.ParamaterInfo;
+import com.mindmotion.xls2latex.enums.ResultEnum;
+import com.mindmotion.xls2latex.util.FileUtil;
+import com.mindmotion.xls2latex.util.LatexUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
@@ -18,37 +19,66 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 
 public class ExcelFile {
-    public static Boolean ProduceRegTab(ParamaterInfo paramaterInfo){
-        List<List<CellInfo>> datas = new ArrayList<List<CellInfo>>();
+    public static Integer ProduceRegTab(ParamaterInfo paramaterInfo){
+        List<List<CellInfo>> rowDatas = new ArrayList<List<CellInfo>>();
+        List<String> latexDatas = new ArrayList<String>();
         Workbook workbook = null;
         try {
             workbook = WorkbookFactory.create(new File(paramaterInfo.getSourceFileName()));
             for (int i = 0; i < workbook.getNumberOfSheets(); i ++){
-                clearDataList(datas);
-                if (readSheetData(workbook.getSheetAt(i), datas, 0, -1, paramaterInfo.getColCount()) == true){
-                    if (translate2RegTab(paramaterInfo.getLanguage(), paramaterInfo.getDestFileName(), datas) == false){
+                clearRowDatas(rowDatas);
+                clearLatexDatas(latexDatas);
+                if (readSheetData(workbook.getSheetAt(i), rowDatas, 0, -1, paramaterInfo.getColCount())){
+                    if (translate2RegTab(paramaterInfo.getLanguage(), rowDatas, latexDatas)){
+                        if (!generalRegFile(getRegTabFileName(paramaterInfo.getDestDirectory(), getRegTabFileNamePrefix(paramaterInfo.getSourceFileName()), workbook.getSheetAt(i).getSheetName()), latexDatas)){
+                            return ResultEnum.MAKEOUTDIRFAIL.getCode();
+                        }
+                    } else {
+                        return ResultEnum.READEXCELFILEFAIL.getCode();
                     }
                 }
             }
             workbook.close();
+            return ResultEnum.SUCCESS.getCode();
         } catch (IOException e) {
             e.printStackTrace();
-            return false;
+            return ResultEnum.READEXCELFILEFAIL.getCode();
         }
-        return true;
     }
 
-    private static boolean translate2RegTab(int language, String fileName, List<List<CellInfo>> datas) {
-        List<String> lists = new ArrayList<String>();
+    private static boolean generalRegFile(String fileName, List<String> datas) {
+        return FileUtil.saveToFileByList(fileName, datas);
+    }
 
-        generalRegHead(lists, language);
+    private static void clearLatexDatas(List<String> datas) {
+        datas.clear();
+    }
 
-        generalRegBody(lists, datas);
+    private static String getRegTabFileNamePrefix(String fileName) {
+        if (fileName.indexOf(".") == -1) {
+            return fileName;
+        };
 
-        return FileUtil.saveToFileByList(fileName, lists);
+        String value = StringUtils.substringBeforeLast(fileName, ".");
+        if (value.indexOf("\\") == -1){
+            return value;
+        }
+
+        return StringUtils.substringAfterLast(value, "\\");
+    }
+
+    private static String getRegTabFileName(String directory, String prefix, String sheetName) {
+        return String.format("%s\\%s_%s.tex", directory, prefix, sheetName);
+    }
+
+    private static boolean translate2RegTab(int language, List<List<CellInfo>> sourceDatas, List<String> targetDatas) {
+        generalRegHead(targetDatas, language);
+
+        generalRegBody(targetDatas, sourceDatas);
+
+        return true;
     }
 
     private static void generalRegBody(List<String> lists, List<List<CellInfo>> datas) {
@@ -113,21 +143,21 @@ public class ExcelFile {
     private static boolean readSheetData(Sheet sheet, List<List<CellInfo>> datas, int startRowIndex, int length, int colCount) {
         int rowCount = getRowCount(length, startRowIndex, sheet.getLastRowNum());
         for (int i = startRowIndex; i < rowCount; i ++) {
-            if (isEmptyRow(sheet.getRow(i)) == false){
-                List<CellInfo> rowData = new ArrayList<CellInfo>();
-                if (readRowData(sheet, i, colCount, rowData) == true){
-                    datas.add(rowData);
-                };
-            } else {
+            if (isEmptyRow(sheet.getRow(i))) {
                 break;
             }
+
+            List<CellInfo> rowData = new ArrayList<CellInfo>();
+            if (readRowData(sheet, i, colCount, rowData)){
+                datas.add(rowData);
+            };
         }
         return true;
     }
 
     private static boolean isEmptyRow(Row row) {
         String text = getTextFromCell(row.getCell(0));
-        return (text == null) | (text.trim() == "");
+        return (text == null) | ("".equals(text.trim()));
     }
 
     private static int getRowCount(int length, int startRowIndex, int lastRowNum) {
@@ -145,7 +175,7 @@ public class ExcelFile {
             Cell cell = row.getCell(i);
             CellInfo cellInfo = new CellInfo();
             cellInfo.setMerged(isMerged(sheet, rowIndex, i, rect));
-            if (cellInfo.getMerged() == true) {
+            if (cellInfo.getMerged()) {
                 cellInfo.setRect(rect);
             }
             cellInfo.sethAligment(getHAligment(cell));
@@ -158,11 +188,11 @@ public class ExcelFile {
         return true;
     }
 
-    private static void clearDataList(List<List<CellInfo>> datas) {
-        for (int i = 0; i < datas.size() - 1; i++ ){
-            clearRowData(datas.get(i));
+    private static void clearRowDatas(List<List<CellInfo>> rowData) {
+        for (int i = 0; i < rowData.size() - 1; i++ ){
+            clearRowData(rowData.get(i));
         }
-        datas.clear();
+        rowData.clear();
     }
 
     private static void clearRowData(List<CellInfo> rowData) {
@@ -192,13 +222,7 @@ public class ExcelFile {
         }
     }
 
-    private static Integer getFontColorFromCell(Cell cell) {
-        XSSFCellStyle xssfCellStyle = (XSSFCellStyle) cell.getCellStyle();
-        XSSFFont xssfFont = xssfCellStyle.getFont();
-        return color2UOF(xssfFont.getXSSFColor());
-    }
-
-    private static Integer color2UOF(Color color) {
+    private static Integer color2RGB(Color color) {
         if (color != null){
             XSSFColor xssfColor = (XSSFColor) color;
             byte[] colors = xssfColor.getRGB();
@@ -208,9 +232,15 @@ public class ExcelFile {
         }
     }
 
+    private static Integer getFontColorFromCell(Cell cell) {
+        XSSFCellStyle xssfCellStyle = (XSSFCellStyle) cell.getCellStyle();
+        XSSFFont xssfFont = xssfCellStyle.getFont();
+        return color2RGB(xssfFont.getXSSFColor());
+    }
+
     private static Integer getBackColorFromCell(Cell cell) {
         CellStyle cellStyle = cell.getCellStyle();
-        return color2UOF(cellStyle.getFillForegroundColorColor());
+        return color2RGB(cellStyle.getFillForegroundColorColor());
     }
 
    private static VerticalAlignment getVAligment(Cell cell) {
@@ -248,72 +278,3 @@ public class ExcelFile {
         return false;
     }
 }
-
-/*
-
-
-    private static Integer getBackColorFromCell(Cell cell) {
-    }
-
-    private static String getTextFromCell(Cell cell) {
-    }
-
-    private static Boolean isMerged(Sheet sheet, int rowIndex, int columnIndex) {
-        int sheetMergeCount = sheet.getNumMergedRegions();
-        for(int i = 0; i < sheetMergeCount; i++){
-            CellRangeAddress ca = sheet.getMergedRegion(i);
-            int firstColumn = ca.getFirstColumn();
-            int lastColumn = ca.getLastColumn();
-            int firstRow = ca.getFirstRow();
-            int lastRow = ca.getLastRow();
-            if(rowIndex == firstRow && rowIndex == lastRow){
-                if(columnIndex >= firstColumn && columnIndex <= lastColumn){
-                    return false;
-                }
-            }
-        }
-        return null ;
-    }
-
-    private static void generatorRegTabBoday(Sheet sheet, Integer colCount, StringBuilder stringBuilder) {
-        generatorRegTabBodyHeadRang(stringBuilder);
-        for (int i = 0; i < sheet.getLastRowNum(); i ++){
-
-        }
-        generatorRegTabBodyEndRang(stringBuilder);
-    }
-
-    private static void generatorRegTabBodyEndRang(StringBuilder stringBuilder) {
-        stringBuilder.append("}");
-        appendEnterLine(stringBuilder);
-    }
-
-    private static void generatorRegTabBodyHeadRang(StringBuilder stringBuilder) {
-        stringBuilder.append('{');
-        appendEnterLine(stringBuilder);
-    }
-
-    private static void generatorRegTabHead(Integer language, StringBuilder stringBuilder) {
-        if (language == 0) {
-            stringBuilder.append("regDescriptionCN");
-        } else {
-            stringBuilder.append("regDescriptionEN");
-        }
-        appendEnterLine(stringBuilder);
-    }
-
-    private static void appendEnterLine(StringBuilder stringBuilder) {
-        stringBuilder.append("/r/n");
-    }
-
-    private static void translate2RegTab(Sheet sheet, Integer language, Integer colCount) {
-        StringBuilder stringBuilder = new StringBuilder();
-        generatorRegTabHead(language, stringBuilder);
-        generatorRegTabBoday(sheet, colCount, stringBuilder);
-//        for (int i = 0; i < sheet.getLastRowNum(); i++){
-
-//        }
-//        List<ColumnStyleInfo> columnsStyle = getColumnsStyleFromSheet(sheet, colWidths.size());
-    }
-
- */

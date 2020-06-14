@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ParamaterInfo {
-    String destDirectory;
+    String destFileName;
     String sourceFileName;
     String tableName;
     Integer type;
@@ -26,12 +26,12 @@ public class ParamaterInfo {
         this.colWidths = colWidths;
     }
 
-    public String getDestDirectory() {
-        return destDirectory;
+    public String getDestFileName() {
+        return destFileName;
     }
 
-    public void setDestDirectory(String destDirectory) {
-        this.destDirectory = destDirectory;
+    public void setDestFileName(String destFileName) {
+        this.destFileName = destFileName;
     }
 
     public String getSourceFileName() {

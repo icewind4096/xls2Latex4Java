@@ -3,7 +3,7 @@ package com.mindmotion.xls2latex.enums;
 public enum ResultEnum {
     SUCCESS(0, "SUCCESS"),
     READEXCELFILEFAIL(1, "Read Excel File Fail"),
-    MAKEOUTDIRFAIL(2, "Make Out Directory Fail"),
+    MAKEOUTFILEFAIL(2, "Make Out File Fail"),
     EXCELFILENOTEXIST(3, "Excel Not Exist"),
     ;
 

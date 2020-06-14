@@ -1,5 +1,6 @@
 import com.mindmotion.xls2latex.convert.Arg2Paramater;
 import com.mindmotion.xls2latex.domain.ParamaterInfo;
+import com.mindmotion.xls2latex.enums.GeneralFileTypeEnum;
 import com.mindmotion.xls2latex.enums.ResultEnum;
 import com.mindmotion.xls2latex.file.GeneralTabFile;
 import com.mindmotion.xls2latex.file.RegTabFile;
@@ -16,7 +17,7 @@ public class XLS2Latex {
         };
 
         int resultCode = 0;
-        if (paramaterInfo.getType() == 1){
+        if (paramaterInfo.getGeneralFileTypeEnum() == GeneralFileTypeEnum.REGFILE){
             resultCode = RegTabFile.GenerateFile(paramaterInfo);
         } else {
             resultCode = GeneralTabFile.GenerateFile(paramaterInfo);

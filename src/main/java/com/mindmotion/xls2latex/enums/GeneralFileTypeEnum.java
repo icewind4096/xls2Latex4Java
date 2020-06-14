@@ -1,6 +1,9 @@
 package com.mindmotion.xls2latex.enums;
 
 public enum GeneralFileTypeEnum {
+    REGOVERVIEWFILE(0, "REG OVERVIEW FILE"),
+    REGFILE(1, "REG FILE"),
+    GENERALFILE(2, "GENERAL FILE"),
     ;
 
     private int code;

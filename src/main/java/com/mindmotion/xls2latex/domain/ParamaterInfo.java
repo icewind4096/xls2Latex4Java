@@ -1,5 +1,8 @@
 package com.mindmotion.xls2latex.domain;
 
+import com.mindmotion.xls2latex.enums.GeneralFileTypeEnum;
+import com.mindmotion.xls2latex.enums.HAligmentEnum;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,11 +10,11 @@ public class ParamaterInfo {
     String destFileName;
     String sourceFileName;
     String tableName;
-    Integer type;
+    GeneralFileTypeEnum generalFileTypeEnum;
     Integer width;
     Integer colCount;
     Integer language;
-    Integer aligment;
+    HAligmentEnum aligment;
     List<Integer> colWidths;
 
     public ParamaterInfo() {
@@ -50,12 +53,12 @@ public class ParamaterInfo {
         this.tableName = tableName;
     }
 
-    public Integer getType() {
-        return type;
+    public GeneralFileTypeEnum getGeneralFileTypeEnum() {
+        return generalFileTypeEnum;
     }
 
-    public void setType(Integer type) {
-        this.type = type;
+    public void setGeneralFileTypeEnum(GeneralFileTypeEnum generalFileTypeEnum) {
+        this.generalFileTypeEnum = generalFileTypeEnum;
     }
 
     public Integer getWidth() {
@@ -82,11 +85,11 @@ public class ParamaterInfo {
         this.language = language;
     }
 
-    public Integer getAligment() {
+    public HAligmentEnum getAligment() {
         return aligment;
     }
 
-    public void setAligment(Integer aligment) {
+    public void setAligment(HAligmentEnum aligment) {
         this.aligment = aligment;
     }
 }

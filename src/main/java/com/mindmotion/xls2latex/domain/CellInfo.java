@@ -51,7 +51,7 @@ public class CellInfo {
     }
 
     public void setRect(Rect rect) {
-        this.rect = rect;
+        this.rect = new Rect(rect.getTop(), rect.getLeft(), rect.getRight(), rect.getBottom());
     }
 
     public Integer getColWidth() {

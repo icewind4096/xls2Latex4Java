@@ -36,9 +36,7 @@ public class ExcelFile {
             Cell cell = row.getCell(i);
             CellInfo cellInfo = new CellInfo();
             cellInfo.setMerged(isMerged(sheet, rowIndex, i, rect));
-            if (cellInfo.getMerged()) {
-                cellInfo.setRect(rect);
-            }
+            cellInfo.setRect(rect);
             cellInfo.sethAligment(getHAligment(cell));
             cellInfo.setvAligment(getVAligment(cell));
             cellInfo.setBackColor(getBackColorFromCell(cell));
@@ -110,14 +108,18 @@ public class ExcelFile {
             int lastRow = ca.getLastRow();
             if(rowIndex >= firstRow && rowIndex <= lastRow){
                 if(columnIndex >= firstColumn && columnIndex <= lastColumn){
-                    rect.setLeft(firstRow);
-                    rect.setTop(firstColumn);
+                    rect.setLeft(firstColumn);
+                    rect.setTop(firstRow);
                     rect.setRight(lastColumn);
                     rect.setBottom(lastRow);
                     return true;
                 }
             }
         }
+        rect.setLeft(columnIndex);
+        rect.setTop(rowIndex);
+        rect.setRight(columnIndex);
+        rect.setBottom(rowIndex);
         return false;
     }
 

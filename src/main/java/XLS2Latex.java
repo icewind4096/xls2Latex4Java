@@ -8,8 +8,10 @@ import com.mindmotion.xls2latex.util.FileUtil;
 
 public class XLS2Latex {
     public static void main(String[] args) {
-        //type -> 1  I:\excel\latex I:\excel\cn_ADC.xlsx 1 440 5 90,90,90,170,90 0 0
-        //type -> 2  I:\excel\latex\cn_FLASH_OverView.tex I:\excel\cn_FLASH_OverView.xlsx 0 430 5 70,50,70,140,100 0 2 FLASH模块操作寄存器一览表
+        //type -> 2  D:\excel\latex\cn_FlashOrganization.tex D:\excel\cn_FlashOrganization.xlsx 2 430 4 70,90,140,140 0 2 FLASH模块操作寄存器一览表
+        //type -> 2  D:\excel\latex\cn_Replace.tex D:\excel\cn_Replace.xlsx 0 430 5 70,50,70,140,100 0 2 FLASH模块操作寄存器一览表
+        //type -> 1  D:\excel\latex D:\excel\cn_FLASH.xlsx 1 440 5 90,90,90,170,90 0 0
+        //type -> 0  D:\excel\latex\cn_FLASH_OverView.tex D:\excel\cn_FLASH_OverView.xlsx 0 430 5 70,50,70,140,100 0 2 FLASH模块操作寄存器一览表
         ParamaterInfo paramaterInfo = Arg2Paramater.arg2Paramater(args);
 
         if (FileUtil.FileExists(paramaterInfo.getSourceFileName()) == false) {

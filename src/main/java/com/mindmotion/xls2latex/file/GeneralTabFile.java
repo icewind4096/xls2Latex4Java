@@ -6,6 +6,8 @@ import com.mindmotion.xls2latex.enums.GeneralFileTypeEnum;
 import com.mindmotion.xls2latex.enums.HAligmentEnum;
 import com.mindmotion.xls2latex.enums.ResultEnum;
 import com.mindmotion.xls2latex.util.FileUtil;
+import com.mindmotion.xls2latex.util.LatexUtil;
+import com.mindmotion.xls2latex.util.StringUtil;
 import org.apache.poi.ss.usermodel.*;
 
 import java.io.File;
@@ -85,63 +87,154 @@ public class GeneralTabFile {
         targetDatas.add("\\hlineNpx{1}");
 
         //得到表格数据
-//        targetDatas.add(getBodyData(colCount, AData, AGrdType));
+        targetDatas.add(getBodyData(rowDatas, generalFileType));
         targetDatas.add("\\hlineNpx{1}");
         //表格列头对齐方式结束
         targetDatas.add("\\end{tabular}");
         //表格对齐位置结束
         targetDatas.add(getTableAligmentEnd(aligment));
+
         //表格结束
         targetDatas.add("\\end{table}");
+
         return true;
     }
 
+    private static String getBodyData(List<List<CellInfo>> rowDatas, GeneralFileTypeEnum generalFileType) {
+        String text = "";
+        for (int i = 0; i < rowDatas.size(); i ++){
+            text = text + getRowData(i, false, rowDatas.get(i), generalFileType) + "\r\n";
+        }
+        if (text.length() > 0){
+            text = text.substring(0, text.length() - 2);
+        }
+        return text;
+    }
+
     private static String getColumnData(List<CellInfo> columnDatas, GeneralFileTypeEnum generalFileType) {
-        return getRowData(columnDatas, generalFileType);
+        return getRowData(0, true, columnDatas, generalFileType);
     }
 
-    private static String getRowData(List<CellInfo> columnDatas, GeneralFileTypeEnum generalFileType) {
-//        for (CellInfo cellInfo: )
-        return "";
-    }
-/*
-var
-    i: Integer;
-begin
-    Result:= '';
-    for i:= 0 to AColCount - 1 do
-    begin
-        if ARowData^.data[i].merged = True then
-        begin
-            if ARowData^.data[i].rect.Bottom <> ARowData^.data[i].rect.Top then
-            begin
-                if (ARow = ARowData^.data[i].rect.Top) then
-                    Result:= Result + Format('\multirow{%d}{%dpt}{%s}', [ARowData^.data[i].rect.Bottom - ARowData^.data[i].rect.Top + 1, ARowData^.data[i].colWidth, getCellData(ARowData^.data[i].hAligment, ARow, ARowData^.data[i].colWidth, String(ARowData^.data[i].text), ARowData^.data[i].backColor, ARowData^.data[i].fontColor, AGrdType, isAutoRef(AGrdType, i, AColCount))])
-            end
-            else begin
-                if ARowData^.data[i].rect.Right <> ARowData^.data[i].rect.Left then
-                begin
-                    if (i + 1 = ARowData^.data[i].rect.Left) then
-//                      Result:= Result + Format('\multicolumn{%d}{%s}{%s} ', [ARowData^.data[i].rect.Right - ARowData^.data[i].rect.Left + 1, getVLine(ARowData^.data[i].hAligment, getLeftLineVis(i + 1, ARowData), getRightLineVis(i + 1, ARowData, AColCount)), getCellData(ARow, ARowData^.data[i].colWidth, String(ARowData^.data[i].text))])
-                        Result:= Result + Format('\multicolumn{%d}{%s}{%s} ', [ARowData^.data[i].rect.Right - ARowData^.data[i].rect.Left + 1, getVLine(ARowData^.data[i].hAligment, getLeftLineVis(i + 1, ARowData), getRightLineVis(i + 1, ARowData, AColCount)), getCellData(ARowData^.data[i].hAligment, ARow, getMultColumnWidth(i, ARowData), String(ARowData^.data[i].text), ARowData^.data[i].backColor, ARowData^.data[i].fontColor, AGrdType, isAutoRef(AGrdType, i, AColCount))])
-                    else
-                        continue;
-                end;
-            end;
-        end
-        else
-            Result:= Result + Format('%s', [getCellData(ARowData^.data[i].hAligment, ARow, ARowData^.data[i].colWidth, String(ARowData^.data[i].text), ARowData^.data[i].backColor, ARowData^.data[i].fontColor, AGrdType, isAutoRef(AGrdType, i, AColCount))]);
-        Result:= Result + ' &';
-    end;
-    Delete(Result, Result.Length, 1);
+    private static String getRowData(int rowIndex, boolean isColumn, List<CellInfo> datas, GeneralFileTypeEnum generalFileType) {
+        CellInfo cellInfo = null;
+        String text = "";
+        for (int i = 0; i < datas.size(); i++){
+            cellInfo = datas.get(i);
+            if (cellInfo.getMerged() == true){
+                if (!cellInfo.getRect().getBottom().equals(cellInfo.getRect().getTop())){
+                    if (rowIndex + 1 == cellInfo.getRect().getTop()){
+                        text = text + String.format("\\multirow{%d}{%dpt}{%s}", cellInfo.getRect().getBottom() - cellInfo.getRect().getTop() + 1, cellInfo.getColWidth(), getCellData(cellInfo.gethAligment(), isColumn, cellInfo.getColWidth(), cellInfo.getText(), cellInfo.getBackColor(), cellInfo.getFontColor(), generalFileType, isAutoRef(generalFileType, i, datas.size() - 1)));
+                    }
+                } else {
+                    if (!cellInfo.getRect().getLeft().equals(cellInfo.getRect().getRight())){
+                        if (i == cellInfo.getRect().getLeft()){
+                            text = text + String.format("\\multicolumn{%d}{%s}{%s} " , cellInfo.getRect().getRight() - cellInfo.getRect().getLeft() + 1
+                                                                                     , getCellVLineString(cellInfo.gethAligment(), getCellLeftLineVisable(datas, i), getCellRightLineVisiable(datas, i))
+                                                                                     , getCellData(cellInfo.gethAligment(), isColumn, cellInfo.getColWidth(), cellInfo.getText(), cellInfo.getBackColor(), cellInfo.getFontColor(), generalFileType, isAutoRef(generalFileType, i, datas.size() - 1)));
+                        } else {
+                            continue;
+                        }
+                    }
+                }
+            } else {
+                text = text + String.format("%s", getCellData(cellInfo.gethAligment(), isColumn, cellInfo.getColWidth(), cellInfo.getText(), cellInfo.getBackColor(), cellInfo.getFontColor(), generalFileType, isAutoRef(generalFileType, i, datas.size() - 1)));
+            }
+            text = text + " &";
+        }
+        text = text.substring(0, text.length() - 1);
 
-    Result:= Result + Format('\\ %s ', [getCLine(AColCount, ARow, ARowData)]) + Char($0D) + Char($0A);
- */
+        return text + String.format("\\\\ %s ", getCLine(rowIndex, isColumn, datas));
+    }
+
+    private static String getCellVLineString(HorizontalAlignment horizontalAlignment, boolean cellLeftLineVisable, boolean cellRightLineVisiable) {
+        String text = cellHAligment2String(horizontalAlignment);
+
+        if (cellLeftLineVisable){
+            text = "|" + text;
+        }
+
+        if (cellRightLineVisiable){
+            text = text + "|";
+        }
+
+        return text;
+    }
+
+    private static String cellHAligment2String(HorizontalAlignment horizontalAlignment) {
+        switch (horizontalAlignment){
+            case CENTER: return "c";
+            case RIGHT: return "r";
+            default: return "l";
+        }
+    }
+
+    private static boolean getCellLeftLineVisable(List<CellInfo> datas, int colIndex) {
+        if (colIndex == 0){
+            return false;
+        } else {
+            return !datas.get(colIndex - 1).getRect().getRight().equals(datas.get(colIndex - 1).getRect().getLeft());
+        }
+    }
+
+    private static boolean getCellRightLineVisiable(List<CellInfo> datas, int colIndex) {
+        if (datas.get(colIndex).getRect().getRight() == datas.size() - 1){
+            return false;
+        } else {
+            return !datas.get(datas.get(colIndex).getRect().getRight()).getMerged();
+        }
+    }
+
+    private static String getCLine(int rowIndex, boolean isColumn, List<CellInfo> datas) {
+        String text = "";
+        for (int i = 0; i < datas.size(); i ++){
+            CellInfo cellInfo = datas.get(i);
+            if ((cellInfo.getMerged() == false) || (isColumn == true) || (isColumn == false && cellInfo.getMerged() == true && cellInfo.getRect().getBottom() == rowIndex + 1)){
+                text = text + String.format(" \\cline{%d-%d}", i + 1, i + 1);
+            }
+        }
+        return text;
+    }
+
+    private static String getCellData(HorizontalAlignment horizontalAlignment, boolean isColumn, Integer cellWidth, String text, Integer backColor, Integer fontColor, GeneralFileTypeEnum generalFileType, boolean autoRef) {
+        String value;
+        if (isColumn){
+            if (generalFileType == GeneralFileTypeEnum.REGOVERVIEWFILE){
+                value = String.format("\\columnTitle\\cell\\cellcolor[RGB]{%s}{%s}", StringUtil.colorToRGB(0xB0D5FA), text);
+            } else {
+                value = String.format("\\columnTitle{%s}", text);
+            }
+        } else {
+            value = String.format("\\cell{%s}", text);
+        }
+
+        value = String.format("\\begin{minipage}[]{%dpt}\\begin{%s}\\vspace{5pt} %s \\vspace{5pt}\\end{%s} \\end{minipage}", cellWidth, HAligment2FlushString(horizontalAlignment), value, HAligment2FlushString(horizontalAlignment));
+
+        if (!autoRef){
+            return LatexUtil.conver2LatexString(value, false);
+        } else {
+            return value;
+        }
+    }
+
+    private static String HAligment2FlushString(HorizontalAlignment horizontalAlignment) {
+        switch (horizontalAlignment){
+            case CENTER: return "center";
+            case LEFT: return "flushleft";
+            default: return "flushright";
+        }
+    }
+
+    private static boolean isAutoRef(GeneralFileTypeEnum generalFileType, int colIndex, int colCount) {
+        if (generalFileType == GeneralFileTypeEnum.REGOVERVIEWFILE) {
+            return colIndex == colCount;
+        }
+        return false;
+    }
 
     private static String getColumnStyle(List<CellInfo> columnDatas, GeneralFileTypeEnum generalFileType) {
         String text = "";
         for (CellInfo cellInfo : columnDatas) {
-            text = text + String.format("%sp{%dpt}<{\\%s}", getVLineVisiable(generalFileType), cellInfo.getColWidth(), getColumnAlignment(cellInfo.gethAligment()));
+            text = text + String.format("%sp{%dpt}<{\\%s}", getColumnVLineVisiable(generalFileType), cellInfo.getColWidth(), columnHAlignment2String(cellInfo.gethAligment()));
         }
 
         if (generalFileType == GeneralFileTypeEnum.GENERALFILE){
@@ -151,7 +244,7 @@ begin
         return text;
     }
 
-    private static String getColumnAlignment(HorizontalAlignment aligment) {
+    private static String columnHAlignment2String(HorizontalAlignment aligment) {
         //左右是不是写反了??
         switch (aligment){
             case RIGHT: return "raggedleft";
@@ -160,7 +253,7 @@ begin
         }
     }
 
-    private static String getVLineVisiable(GeneralFileTypeEnum generalFileType) {
+    private static String getColumnVLineVisiable(GeneralFileTypeEnum generalFileType) {
         if (generalFileType == GeneralFileTypeEnum.GENERALFILE){
             return "|";
         } else {
